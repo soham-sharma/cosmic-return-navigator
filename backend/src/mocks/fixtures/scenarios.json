@@ -1,0 +1,143 @@
+[
+  {
+    "_comment": "THE demo. Verbatim from PRD section 11. Everything in the fixture set is tuned so this produces: APPROVED -> HIGH severity/GOLD -> REPLACEMENT + 500 points -> next-day consolidated pickup -> empathetic confirmation -> CO2 saving -> smartwatch defect insight reinforced.",
+    "scenarioId": "SCN-PRIMARY-SMARTWATCH",
+    "name": "Damaged smartwatch (primary demo)",
+    "isPrimary": true,
+    "personaLabel": "Alex — Earth customer",
+    "input": "I bought a smartwatch 20 days ago. It arrived damaged and I'd like a return.",
+    "customerId": "CUST-001001",
+    "orderId": "ORD-088213",
+    "orderItemId": "ORD-088213-I1",
+    "expected": {
+      "eligibilityDecision": "APPROVED_WITH_CONDITIONS",
+      "resolutionType": "REPLACEMENT",
+      "goodwill": "500 bonus points",
+      "logisticsMethod": "HOME_PICKUP",
+      "sustainability": "positive CO2 prevented via consolidated route",
+      "insight": "PRODUCT_DEFECT_TREND reinforced",
+      "escalatesToHuman": false
+    },
+    "narrativeBeats": [
+      "Orchestrator normalizes free text into a structured return intent",
+      "Eligibility and Sentiment run in parallel",
+      "Eligibility: within the 45-day effective window (30 base + 15 damage extension), fees waived",
+      "Sentiment: HIGH severity, GOLD member, $4,820 LTV, churn risk elevated",
+      "Resolution: replacement beats refund on the weighted matrix, plus 500 points",
+      "Logistics: ground-only carriers (lithium battery), next-day pickup",
+      "Sustainability: consolidated route beats the cost-optimal pick — orchestrator adopts green",
+      "Communication: empathetic confirmation quoting the CO2 saving",
+      "Insights: smartwatch defect trend reinforced for the product team"
+    ]
+  },
+  {
+    "_comment": "Edge case: return outside the eligibility window (PRD section 10).",
+    "scenarioId": "SCN-OUTSIDE-WINDOW",
+    "name": "Outside the return window",
+    "isPrimary": false,
+    "personaLabel": "Jamie — new standard-tier customer",
+    "input": "I ordered two t-shirts back in July and I've changed my mind, can I send them back?",
+    "customerId": "CUST-001002",
+    "orderId": "ORD-084991",
+    "orderItemId": "ORD-084991-I1",
+    "expected": {
+      "eligibilityDecision": "DENIED",
+      "resolutionType": "DENY or STORE_CREDIT",
+      "escalatesToHuman": false,
+      "note": "Denial must still be explained with the policy citation and a route to a human."
+    }
+  },
+  {
+    "_comment": "Edge case: high-value customer with a low-value item (retention override).",
+    "scenarioId": "SCN-VIP-LOW-VALUE",
+    "name": "VIP returning a low-value item",
+    "isPrimary": false,
+    "personaLabel": "Priya — Platinum VIP",
+    "input": "This is the second faulty accessory this month. The phone case I just got is completely broken and honestly I'm losing patience with Cosmic Mart.",
+    "customerId": "CUST-001003",
+    "orderId": "ORD-088902",
+    "orderItemId": "ORD-088902-I1",
+    "expected": {
+      "eligibilityDecision": "APPROVED",
+      "resolutionType": "KEEP_AND_REFUND",
+      "goodwill": "above-standard gesture authorized by VIP override",
+      "logisticsMethod": "NO_RETURN_REQUIRED",
+      "sustainability": "grade A — nothing ships",
+      "escalatesToHuman": true,
+      "note": "Return shipping exceeds item value, so nothing should move. Public-complaint history should raise PUBLIC_COMPLAINT_RISK."
+    }
+  },
+  {
+    "_comment": "Edge case: region with stricter consumer protection law.",
+    "scenarioId": "SCN-EU-STATUTORY",
+    "name": "EU statutory withdrawal right",
+    "isPrimary": false,
+    "personaLabel": "Tomas — German customer",
+    "input": "Ich möchte die Kopfhörer zurückgeben — I would like to return the earbuds I received last week, they are not what I expected.",
+    "customerId": "CUST-001004",
+    "orderId": "ORD-088555",
+    "orderItemId": "ORD-088555-I1",
+    "expected": {
+      "eligibilityDecision": "APPROVED",
+      "restockingFee": "waived — prohibited under EU law",
+      "resolutionType": "REFUND",
+      "escalatesToHuman": false,
+      "note": "Rationale must cite EU Consumer Rights Directive 2011/83/EU Art. 9. Replacement is infeasible (0 units in stock)."
+    }
+  },
+  {
+    "_comment": "Edge case: fraud signal / repeat serial returner.",
+    "scenarioId": "SCN-FRAUD-SIGNAL",
+    "name": "Repeat serial returner",
+    "isPrimary": false,
+    "personaLabel": "Riley — watchlisted account",
+    "input": "These earbuds don't work either. I want my money back straight away.",
+    "customerId": "CUST-001005",
+    "orderId": "ORD-089001",
+    "orderItemId": "ORD-089001-I1",
+    "expected": {
+      "eligibilityDecision": "MANUAL_REVIEW",
+      "escalatesToHuman": true,
+      "escalationCode": "FRAUD_SIGNAL_DETECTED",
+      "note": "11 returns in 90 days and a 62% return rate breach both fraud thresholds. Pipeline should halt at stage 1 pending review, and the customer must still receive a reassuring holding message."
+    }
+  },
+  {
+    "_comment": "Edge case: item ineligible by category (perishable).",
+    "scenarioId": "SCN-PERISHABLE",
+    "name": "Perishable item — category ineligible",
+    "isPrimary": false,
+    "personaLabel": "Morgan — loyal Gold customer",
+    "input": "The coffee beans I got yesterday taste stale, I'd like to return both bags please.",
+    "customerId": "CUST-001006",
+    "orderId": "ORD-089044",
+    "orderItemId": "ORD-089044-I1",
+    "expected": {
+      "eligibilityDecision": "DENIED",
+      "escalationCode": "CATEGORY_NOT_RETURNABLE",
+      "resolutionType": "STORE_CREDIT",
+      "escalatesToHuman": false,
+      "note": "Perishables cannot come back, but a loyal customer should still be made whole — refund without return, no logistics leg."
+    }
+  },
+  {
+    "_comment": "Edge case: no greener logistics option available (remote address, single carrier).",
+    "scenarioId": "SCN-NO-GREEN-OPTION",
+    "name": "Remote address, no greener option",
+    "isPrimary": false,
+    "personaLabel": "Sana — remote Australian customer",
+    "input": "My smartwatch turned up smashed — the box was crushed. I need a replacement.",
+    "customerId": "CUST-001007",
+    "orderId": "ORD-088777",
+    "orderItemId": "ORD-088777-I1",
+    "expected": {
+      "eligibilityDecision": "APPROVED_WITH_CONDITIONS",
+      "resolutionType": "REPLACEMENT",
+      "logisticsMethod": "HOME_PICKUP",
+      "sustainability": "NO_GREENER_OPTION_AVAILABLE (informational, not a failure)",
+      "insight": "PACKAGING_FAILURE — delivery scan recorded PACKAGE_DAMAGED",
+      "escalatesToHuman": false,
+      "note": "Only CARR-OUTBACK serves this address. Tests that a single-option result is presented as a neutral fact."
+    }
+  }
+]

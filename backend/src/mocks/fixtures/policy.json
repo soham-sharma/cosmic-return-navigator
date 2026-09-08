@@ -1,0 +1,177 @@
+{
+  "_comment": "The return policy as DATA. Cosmic Mart's top sentiment driver is its 'complicated return policy', so every rule the Eligibility Agent applies is tunable here rather than hardcoded. Effective window = max(categoryWindow + tierExtension + reasonExtension, statutoryWindow).",
+
+  "policyId": "COSMIC-RETURN-POLICY",
+  "version": "2026.3",
+  "effectiveFrom": "2026-07-01",
+  "defaultReturnWindowDays": 30,
+
+  "categories": [
+    {
+      "_comment": "PRIMARY DEMO CATEGORY. 30-day window, no restocking fee, photo proof required for damage claims, inspection required because units are serialized.",
+      "category": "WEARABLES",
+      "returnWindowDays": 30,
+      "returnable": true,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": true,
+      "requiresProofOfDamage": true,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "ELECTRONICS",
+      "returnWindowDays": 30,
+      "returnable": true,
+      "restockingFeePct": 10,
+      "requiresOriginalPackaging": true,
+      "requiresInspection": true,
+      "requiresProofOfDamage": true,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "APPAREL",
+      "returnWindowDays": 45,
+      "returnable": true,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "ACCESSORIES",
+      "returnWindowDays": 30,
+      "returnable": true,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "HOME",
+      "returnWindowDays": 30,
+      "returnable": true,
+      "restockingFeePct": 5,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "BEAUTY",
+      "returnWindowDays": 14,
+      "returnable": true,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": true,
+      "requiresInspection": true,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": null
+    },
+    {
+      "category": "MEDIA",
+      "returnWindowDays": 14,
+      "returnable": true,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": true,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": null
+    },
+    {
+      "_comment": "Hard denial path — food safety.",
+      "category": "GROCERY_PERISHABLE",
+      "returnWindowDays": 0,
+      "returnable": false,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": "Perishable groceries cannot be returned for food-safety reasons. If the item arrived spoiled or damaged we will refund it without a return."
+    },
+    {
+      "_comment": "Hard denial path — clearance stock.",
+      "category": "FINAL_SALE",
+      "returnWindowDays": 0,
+      "returnable": false,
+      "restockingFeePct": 0,
+      "requiresOriginalPackaging": false,
+      "requiresInspection": false,
+      "requiresProofOfDamage": false,
+      "nonReturnableReason": "Clearance and final-sale items are sold as-is and cannot be returned, unless they arrived faulty."
+    }
+  ],
+
+  "tierBenefits": [
+    { "tier": "STANDARD", "windowExtensionDays": 0, "freeReturnShipping": false, "restockingFeeWaived": false, "goodwillBudgetUsd": 5, "priorityHandling": false, "pointsMultiplier": 1 },
+    { "tier": "SILVER", "windowExtensionDays": 7, "freeReturnShipping": false, "restockingFeeWaived": false, "goodwillBudgetUsd": 15, "priorityHandling": false, "pointsMultiplier": 1 },
+    {
+      "_comment": "PRIMARY DEMO TIER. $40 goodwill budget comfortably covers 500 bonus points ($5) plus expedited shipping ($12).",
+      "tier": "GOLD",
+      "windowExtensionDays": 15,
+      "freeReturnShipping": true,
+      "restockingFeeWaived": true,
+      "goodwillBudgetUsd": 40,
+      "priorityHandling": false,
+      "pointsMultiplier": 1
+    },
+    { "tier": "PLATINUM", "windowExtensionDays": 30, "freeReturnShipping": true, "restockingFeeWaived": true, "goodwillBudgetUsd": 100, "priorityHandling": true, "pointsMultiplier": 1.5 },
+    { "tier": "COSMIC_ELITE", "windowExtensionDays": 60, "freeReturnShipping": true, "restockingFeeWaived": true, "goodwillBudgetUsd": 250, "priorityHandling": true, "pointsMultiplier": 2 }
+  ],
+
+  "regionalRules": [
+    { "regionCode": "NA_US", "regionName": "United States", "statutoryWindowDays": 0, "statutoryReference": "No federal statutory return right; store policy governs.", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": false, "refundDeadlineDays": 14, "exemptCategories": [], "currency": "USD" },
+    { "regionCode": "NA_CA", "regionName": "Canada", "statutoryWindowDays": 0, "statutoryReference": "Provincial consumer protection; store policy governs.", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": false, "refundDeadlineDays": 15, "exemptCategories": [], "currency": "USD" },
+    {
+      "_comment": "REGIONAL-LAW SCENARIO. 14-day right of withdrawal, restocking fees prohibited inside it, 14-day refund deadline.",
+      "regionCode": "EU_DE",
+      "regionName": "Germany",
+      "statutoryWindowDays": 14,
+      "statutoryReference": "EU Consumer Rights Directive 2011/83/EU, Art. 9 (14-day right of withdrawal)",
+      "merchantPaysReturnShippingOnFault": true,
+      "restockingFeeProhibited": true,
+      "refundDeadlineDays": 14,
+      "exemptCategories": ["GROCERY_PERISHABLE", "BEAUTY"],
+      "currency": "EUR"
+    },
+    { "regionCode": "EU_FR", "regionName": "France", "statutoryWindowDays": 14, "statutoryReference": "EU Consumer Rights Directive 2011/83/EU, Art. 9", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": true, "refundDeadlineDays": 14, "exemptCategories": ["GROCERY_PERISHABLE"], "currency": "EUR" },
+    { "regionCode": "UK", "regionName": "United Kingdom", "statutoryWindowDays": 14, "statutoryReference": "Consumer Contracts Regulations 2013, reg. 30", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": true, "refundDeadlineDays": 14, "exemptCategories": ["GROCERY_PERISHABLE"], "currency": "GBP" },
+    { "regionCode": "APAC_IN", "regionName": "India", "statutoryWindowDays": 0, "statutoryReference": "Consumer Protection (E-Commerce) Rules 2020; store policy governs.", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": false, "refundDeadlineDays": 14, "exemptCategories": [], "currency": "INR" },
+    { "regionCode": "APAC_JP", "regionName": "Japan", "statutoryWindowDays": 0, "statutoryReference": "Act on Specified Commercial Transactions; store policy governs.", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": false, "refundDeadlineDays": 14, "exemptCategories": [], "currency": "JPY" },
+    { "regionCode": "APAC_AU", "regionName": "Australia", "statutoryWindowDays": 0, "statutoryReference": "Australian Consumer Law — remedies for major failure apply regardless of window.", "merchantPaysReturnShippingOnFault": true, "restockingFeeProhibited": true, "refundDeadlineDays": 14, "exemptCategories": [], "currency": "USD" }
+  ],
+
+  "reasonPolicies": [
+    {
+      "_comment": "PRIMARY DEMO REASON. +15 days, all fees waived, merchant pays shipping, instant resolution allowed. This is what approves the smartwatch return.",
+      "reason": "DAMAGED_ON_ARRIVAL",
+      "windowExtensionDays": 15,
+      "feesWaived": true,
+      "merchantPaysShipping": true,
+      "requiresEvidence": true,
+      "allowsInstantResolution": true
+    },
+    { "reason": "DEFECTIVE", "windowExtensionDays": 30, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": true, "allowsInstantResolution": true },
+    { "reason": "WRONG_ITEM_SENT", "windowExtensionDays": 15, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": true },
+    { "reason": "NOT_AS_DESCRIBED", "windowExtensionDays": 7, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": false },
+    { "reason": "MISSING_PARTS", "windowExtensionDays": 15, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": true },
+    { "reason": "ARRIVED_LATE", "windowExtensionDays": 7, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": false },
+    { "reason": "CHANGE_OF_MIND", "windowExtensionDays": 0, "feesWaived": false, "merchantPaysShipping": false, "requiresEvidence": false, "allowsInstantResolution": false },
+    { "reason": "BETTER_PRICE_FOUND", "windowExtensionDays": 0, "feesWaived": false, "merchantPaysShipping": false, "requiresEvidence": false, "allowsInstantResolution": false },
+    { "reason": "SIZE_FIT_ISSUE", "windowExtensionDays": 0, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": false },
+    { "reason": "DUPLICATE_ORDER", "windowExtensionDays": 7, "feesWaived": true, "merchantPaysShipping": true, "requiresEvidence": false, "allowsInstantResolution": true },
+    { "reason": "UNKNOWN", "windowExtensionDays": 0, "feesWaived": false, "merchantPaysShipping": false, "requiresEvidence": false, "allowsInstantResolution": false }
+  ],
+
+  "thresholds": {
+    "_comment": "autoApproveMaxUsd 500 keeps the $349.99 smartwatch replacement fully automated — the demo must not stop for approval. keepAndRefundMaxItemUsd 20 catches the $12.99 phone case.",
+    "autoApproveMaxUsd": 500,
+    "manualReviewMinUsd": 1000,
+    "keepAndRefundCostRatio": 0.5,
+    "keepAndRefundMaxItemUsd": 20,
+    "fraudReviewReturnsLast90Days": 6,
+    "fraudReviewReturnRate": 0.4,
+    "vipLifetimeValueUsd": 8000,
+    "retentionInterventionChurnScore": 45
+  }
+}

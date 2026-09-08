@@ -1,0 +1,360 @@
+[
+  {
+    "_comment": "PRIMARY DEMO CUSTOMER — 'Alex' from the PRD personas. GOLD Cosmic Rewards, high LTV, one unresolved prior interaction. Tuned so the Sentiment Agent lands on HIGH severity + HIGH churn risk and recommends 500 bonus points (GOLD multiplier 1.0 x HIGH base 500).",
+    "customerId": "CUST-001001",
+    "firstName": "Alex",
+    "lastName": "Rivera",
+    "email": "alex.rivera@example.com",
+    "phone": "+1-415-555-0142",
+    "loyaltyTier": "GOLD",
+    "loyaltyPoints": 8420,
+    "lifetimeValueUsd": 4820.0,
+    "tenureMonths": 34,
+    "memberSince": "2023-11-12T00:00:00.000Z",
+    "regionCode": "NA_US",
+    "defaultAddress": {
+      "line1": "418 Marina Boulevard",
+      "line2": "Apt 7B",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94123",
+      "countryCode": "US",
+      "regionCode": "NA_US",
+      "isRemote": false,
+      "latitude": 37.8058,
+      "longitude": -122.4368
+    },
+    "returnHistory": {
+      "lifetimeOrders": 42,
+      "lifetimeReturns": 3,
+      "returnsLast90Days": 1,
+      "returnRate": 0.07,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-06-14T09:20:00.000Z"
+    },
+    "recentInteractions": [
+      {
+        "interactionId": "INT-9001",
+        "occurredAt": "2026-08-29T18:05:00.000Z",
+        "channel": "EMAIL",
+        "topic": "Delivery arrived later than promised",
+        "sentimentScore": -0.45,
+        "resolved": false,
+        "escalatedPublicly": false
+      },
+      {
+        "interactionId": "INT-8842",
+        "occurredAt": "2026-06-14T11:00:00.000Z",
+        "channel": "IN_APP",
+        "topic": "Return of duplicate order",
+        "sentimentScore": 0.1,
+        "resolved": true,
+        "escalatedPublicly": false
+      }
+    ],
+    "communicationPreferences": {
+      "preferredChannel": "EMAIL",
+      "allowedChannels": ["EMAIL", "SMS", "PUSH", "IN_APP"],
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "quietHours": { "startHour": 4, "endHour": 13 },
+      "marketingOptIn": true
+    },
+    "lastNpsScore": 7,
+    "flags": [],
+    "createdAt": "2023-11-12T00:00:00.000Z",
+    "updatedAt": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "_comment": "OUTSIDE-WINDOW SCENARIO. New STANDARD customer, low LTV, no tier extension — the Eligibility Agent should DENY and the Resolution Agent should offer little or nothing.",
+    "customerId": "CUST-001002",
+    "firstName": "Jamie",
+    "lastName": "Osei",
+    "email": "jamie.osei@example.com",
+    "phone": "+1-312-555-0198",
+    "loyaltyTier": "STANDARD",
+    "loyaltyPoints": 120,
+    "lifetimeValueUsd": 380.0,
+    "tenureMonths": 5,
+    "memberSince": "2026-04-02T00:00:00.000Z",
+    "regionCode": "NA_US",
+    "defaultAddress": {
+      "line1": "2210 W Fullerton Ave",
+      "city": "Chicago",
+      "state": "IL",
+      "postalCode": "60647",
+      "countryCode": "US",
+      "regionCode": "NA_US",
+      "latitude": 41.9251,
+      "longitude": -87.6845
+    },
+    "returnHistory": {
+      "lifetimeOrders": 4,
+      "lifetimeReturns": 1,
+      "returnsLast90Days": 1,
+      "returnRate": 0.25,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-07-20T00:00:00.000Z"
+    },
+    "recentInteractions": [],
+    "communicationPreferences": {
+      "preferredChannel": "EMAIL",
+      "allowedChannels": ["EMAIL", "IN_APP"],
+      "locale": "en-US",
+      "timezone": "America/Chicago",
+      "quietHours": null,
+      "marketingOptIn": false
+    },
+    "lastNpsScore": 6,
+    "flags": [],
+    "createdAt": "2026-04-02T00:00:00.000Z",
+    "updatedAt": "2026-08-25T00:00:00.000Z"
+  },
+  {
+    "_comment": "RETENTION OVERRIDE SCENARIO. PLATINUM VIP with very high LTV returning a $12.99 phone case. Exercises keep-and-refund plus above-policy generosity.",
+    "customerId": "CUST-001003",
+    "firstName": "Priya",
+    "lastName": "Raman",
+    "email": "priya.raman@example.com",
+    "phone": "+1-206-555-0177",
+    "loyaltyTier": "PLATINUM",
+    "loyaltyPoints": 41300,
+    "lifetimeValueUsd": 12400.0,
+    "tenureMonths": 61,
+    "memberSince": "2021-08-01T00:00:00.000Z",
+    "regionCode": "NA_US",
+    "defaultAddress": {
+      "line1": "1500 Boren Ave",
+      "line2": "Unit 2204",
+      "city": "Seattle",
+      "state": "WA",
+      "postalCode": "98101",
+      "countryCode": "US",
+      "regionCode": "NA_US",
+      "latitude": 47.6142,
+      "longitude": -122.3301
+    },
+    "returnHistory": {
+      "lifetimeOrders": 128,
+      "lifetimeReturns": 9,
+      "returnsLast90Days": 1,
+      "returnRate": 0.07,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-08-02T00:00:00.000Z"
+    },
+    "recentInteractions": [
+      {
+        "interactionId": "INT-9105",
+        "occurredAt": "2026-08-30T14:00:00.000Z",
+        "channel": "SMS",
+        "topic": "Second faulty accessory this month",
+        "sentimentScore": -0.7,
+        "resolved": false,
+        "escalatedPublicly": true
+      }
+    ],
+    "communicationPreferences": {
+      "preferredChannel": "SMS",
+      "allowedChannels": ["SMS", "EMAIL", "PUSH", "IN_APP", "WHATSAPP"],
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "quietHours": null,
+      "marketingOptIn": true
+    },
+    "lastNpsScore": 4,
+    "flags": ["VIP"],
+    "createdAt": "2021-08-01T00:00:00.000Z",
+    "updatedAt": "2026-09-02T00:00:00.000Z"
+  },
+  {
+    "_comment": "REGIONAL LAW SCENARIO. German customer — EU_DE statutory 14-day withdrawal right and prohibited restocking fees override store policy.",
+    "customerId": "CUST-001004",
+    "firstName": "Tomas",
+    "lastName": "Vogel",
+    "email": "tomas.vogel@example.de",
+    "phone": "+49-30-555-0166",
+    "loyaltyTier": "SILVER",
+    "loyaltyPoints": 2100,
+    "lifetimeValueUsd": 1640.0,
+    "tenureMonths": 18,
+    "memberSince": "2025-03-15T00:00:00.000Z",
+    "regionCode": "EU_DE",
+    "defaultAddress": {
+      "line1": "Prenzlauer Allee 88",
+      "city": "Berlin",
+      "state": null,
+      "postalCode": "10405",
+      "countryCode": "DE",
+      "regionCode": "EU_DE",
+      "latitude": 52.5344,
+      "longitude": 13.4245
+    },
+    "returnHistory": {
+      "lifetimeOrders": 19,
+      "lifetimeReturns": 2,
+      "returnsLast90Days": 0,
+      "returnRate": 0.11,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-02-11T00:00:00.000Z"
+    },
+    "recentInteractions": [],
+    "communicationPreferences": {
+      "preferredChannel": "EMAIL",
+      "allowedChannels": ["EMAIL", "IN_APP"],
+      "locale": "de-DE",
+      "timezone": "Europe/Berlin",
+      "quietHours": { "startHour": 20, "endHour": 7 },
+      "marketingOptIn": false
+    },
+    "lastNpsScore": 8,
+    "flags": [],
+    "createdAt": "2025-03-15T00:00:00.000Z",
+    "updatedAt": "2026-08-10T00:00:00.000Z"
+  },
+  {
+    "_comment": "FRAUD SCENARIO. 11 returns in 90 days, 62% lifetime return rate, watchlisted. Eligibility must route to MANUAL_REVIEW with a blocking escalation.",
+    "customerId": "CUST-001005",
+    "firstName": "Riley",
+    "lastName": "Chen",
+    "email": "riley.chen@example.com",
+    "phone": "+1-702-555-0111",
+    "loyaltyTier": "STANDARD",
+    "loyaltyPoints": 60,
+    "lifetimeValueUsd": 890.0,
+    "tenureMonths": 9,
+    "memberSince": "2025-12-01T00:00:00.000Z",
+    "regionCode": "NA_US",
+    "defaultAddress": {
+      "line1": "3300 S Las Vegas Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "postalCode": "89109",
+      "countryCode": "US",
+      "regionCode": "NA_US",
+      "latitude": 36.1263,
+      "longitude": -115.1666
+    },
+    "returnHistory": {
+      "lifetimeOrders": 21,
+      "lifetimeReturns": 13,
+      "returnsLast90Days": 11,
+      "returnRate": 0.62,
+      "disputedReturns": 2,
+      "lastReturnAt": "2026-09-03T00:00:00.000Z"
+    },
+    "recentInteractions": [
+      {
+        "interactionId": "INT-9210",
+        "occurredAt": "2026-09-01T10:00:00.000Z",
+        "channel": "IN_APP",
+        "topic": "Disputed refund on a previous return",
+        "sentimentScore": -0.6,
+        "resolved": false,
+        "escalatedPublicly": false
+      }
+    ],
+    "communicationPreferences": {
+      "preferredChannel": "EMAIL",
+      "allowedChannels": ["EMAIL"],
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "quietHours": null,
+      "marketingOptIn": false
+    },
+    "lastNpsScore": 3,
+    "flags": ["FRAUD_WATCHLIST", "CHARGEBACK_HISTORY"],
+    "createdAt": "2025-12-01T00:00:00.000Z",
+    "updatedAt": "2026-09-05T00:00:00.000Z"
+  },
+  {
+    "_comment": "CATEGORY-INELIGIBLE SCENARIO. Loyal GOLD customer returning perishable coffee — tests that a denial is still handled empathetically.",
+    "customerId": "CUST-001006",
+    "firstName": "Morgan",
+    "lastName": "Diaz",
+    "email": "morgan.diaz@example.com",
+    "phone": "+1-512-555-0123",
+    "loyaltyTier": "GOLD",
+    "loyaltyPoints": 6100,
+    "lifetimeValueUsd": 3260.0,
+    "tenureMonths": 27,
+    "memberSince": "2024-06-10T00:00:00.000Z",
+    "regionCode": "NA_US",
+    "defaultAddress": {
+      "line1": "901 E 6th St",
+      "city": "Austin",
+      "state": "TX",
+      "postalCode": "78702",
+      "countryCode": "US",
+      "regionCode": "NA_US",
+      "latitude": 30.2645,
+      "longitude": -97.7325
+    },
+    "returnHistory": {
+      "lifetimeOrders": 33,
+      "lifetimeReturns": 2,
+      "returnsLast90Days": 0,
+      "returnRate": 0.06,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-01-18T00:00:00.000Z"
+    },
+    "recentInteractions": [],
+    "communicationPreferences": {
+      "preferredChannel": "PUSH",
+      "allowedChannels": ["PUSH", "EMAIL", "IN_APP"],
+      "locale": "en-US",
+      "timezone": "America/Chicago",
+      "quietHours": null,
+      "marketingOptIn": true
+    },
+    "lastNpsScore": 9,
+    "flags": [],
+    "createdAt": "2024-06-10T00:00:00.000Z",
+    "updatedAt": "2026-08-19T00:00:00.000Z"
+  },
+  {
+    "_comment": "NO-GREENER-OPTION SCENARIO. Remote Australian address served by exactly one carrier, so the Sustainability Agent must report NO_GREENER_OPTION_AVAILABLE as a neutral fact.",
+    "customerId": "CUST-001007",
+    "firstName": "Sana",
+    "lastName": "Iqbal",
+    "email": "sana.iqbal@example.com.au",
+    "phone": "+61-8-5550-0134",
+    "loyaltyTier": "GOLD",
+    "loyaltyPoints": 5400,
+    "lifetimeValueUsd": 2980.0,
+    "tenureMonths": 22,
+    "memberSince": "2024-11-05T00:00:00.000Z",
+    "regionCode": "APAC_AU",
+    "defaultAddress": {
+      "line1": "12 Gibb River Road",
+      "city": "Kununurra",
+      "state": "WA",
+      "postalCode": "6743",
+      "countryCode": "AU",
+      "regionCode": "APAC_AU",
+      "isRemote": true,
+      "latitude": -15.7736,
+      "longitude": 128.7386
+    },
+    "returnHistory": {
+      "lifetimeOrders": 26,
+      "lifetimeReturns": 2,
+      "returnsLast90Days": 0,
+      "returnRate": 0.08,
+      "disputedReturns": 0,
+      "lastReturnAt": "2026-03-22T00:00:00.000Z"
+    },
+    "recentInteractions": [],
+    "communicationPreferences": {
+      "preferredChannel": "EMAIL",
+      "allowedChannels": ["EMAIL", "SMS", "IN_APP"],
+      "locale": "en-AU",
+      "timezone": "Australia/Perth",
+      "quietHours": { "startHour": 14, "endHour": 22 },
+      "marketingOptIn": true
+    },
+    "lastNpsScore": 8,
+    "flags": [],
+    "createdAt": "2024-11-05T00:00:00.000Z",
+    "updatedAt": "2026-08-30T00:00:00.000Z"
+  }
+]
