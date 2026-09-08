@@ -1,0 +1,443 @@
+/* ==========================================================================
+   Executive KPI dashboard.
+   Scoped to .viz-root so it cannot leak into the rest of the frontend.
+   Palette values are the validated reference instance; dark is a selected set
+   of steps for the dark surface, not an inverted light mode.
+   ========================================================================== */
+
+.viz-root {
+  color-scheme: light;
+
+  --page-plane: #f9f9f7;
+  --surface-1: #fcfcfb;
+
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+
+  --border: rgba(11, 11, 11, 0.1);
+  --baseline: #c3c2b7;
+
+  --good: #006300;
+  --bad: #d03b3b;
+
+  --meter-fill: #2a78d6;
+  --meter-track: #cde2fb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) .viz-root {
+    color-scheme: dark;
+    --page-plane: #0d0d0d;
+    --surface-1: #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --border: rgba(255, 255, 255, 0.1);
+    --baseline: #383835;
+    --good: #0ca30c;
+    --bad: #d03b3b;
+    --meter-fill: #3987e5;
+    --meter-track: #184f95;
+  }
+}
+
+:root[data-theme='dark'] .viz-root {
+  color-scheme: dark;
+  --page-plane: #0d0d0d;
+  --surface-1: #1a1a19;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --border: rgba(255, 255, 255, 0.1);
+  --baseline: #383835;
+  --good: #0ca30c;
+  --bad: #d03b3b;
+  --meter-fill: #3987e5;
+  --meter-track: #184f95;
+}
+
+/* ------------------------------- page ----------------------------------- */
+
+body {
+  margin: 0;
+}
+
+.viz-root {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 32px clamp(16px, 4vw, 48px) 64px;
+  background: var(--page-plane);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.viz-root *,
+.viz-root *::before,
+.viz-root *::after {
+  box-sizing: inherit;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  max-width: 1180px;
+  margin: 0 auto 28px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.page-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.page-body {
+  max-width: 1180px;
+  margin: 0 auto;
+  transition: opacity 120ms ease-out;
+}
+
+/* Refetch holds the previous render rather than blanking it. */
+.page-body--loading {
+  opacity: 0.6;
+}
+
+/* ------------------------------ controls -------------------------------- */
+
+.btn {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--baseline);
+}
+
+.btn:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--meter-fill);
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  border-color: var(--baseline);
+  font-weight: 600;
+}
+
+.btn[aria-pressed='true'] {
+  border-color: var(--baseline);
+  background: var(--meter-track);
+}
+
+/* Colour is a dot beside the text, never the text itself. */
+.badge {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.badge::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  content: '';
+}
+
+.badge--live::before {
+  background: var(--good);
+}
+
+.badge--mock::before {
+  background: #fab219;
+}
+
+/* -------------------------------- hero ---------------------------------- */
+
+/* Figure on the left, caption on the right, so the lead card is not half empty. */
+.hero {
+  display: grid;
+  padding: 24px 28px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 28px;
+  background: var(--surface-1);
+  column-gap: 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.hero__label,
+.hero__value,
+.hero .meter,
+.hero .delta {
+  grid-column: 1;
+}
+
+/* Spans the four left-column rows the hero always renders: label, value,
+   meter, delta. `1 / -1` will not work here — the rows are implicit. */
+.hero__caption {
+  align-self: center;
+  grid-column: 2;
+  grid-row: 1 / span 4;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero__caption {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+.hero__label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hero__value {
+  margin: 4px 0 0;
+  font-size: 52px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.hero .meter {
+  height: 8px;
+  margin-top: 14px;
+}
+
+.hero__caption {
+  max-width: 46ch;
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* ------------------------------- groups --------------------------------- */
+
+.group {
+  margin-bottom: 26px;
+}
+
+.group__title {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.group__tiles {
+  display: grid;
+  gap: 14px;
+  /* auto-fill, not auto-fit: keeps empty tracks so a 2-tile group and a 4-tile
+     group render the same tile width and line up down the page. */
+  grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+}
+
+.tile {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+}
+
+.tile__label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tile__value {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.tile__suffix {
+  margin-left: 5px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* -------------------------------- meter --------------------------------- */
+
+.meter {
+  overflow: hidden;
+  height: 6px;
+  border-radius: 4px;
+  margin-top: 12px;
+  background: var(--meter-track);
+}
+
+.meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--meter-fill);
+  transition: width 240ms ease-out;
+}
+
+/* -------------------------------- delta --------------------------------- */
+
+.delta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+
+.delta__value {
+  font-weight: 600;
+}
+
+.delta__period,
+.delta--absent,
+.delta--flat {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.delta--good {
+  color: var(--good);
+}
+
+.delta--bad {
+  color: var(--bad);
+}
+
+.delta__arrow {
+  flex: none;
+}
+
+.hero .delta {
+  font-size: 13px;
+}
+
+/* ------------------------------- table ---------------------------------- */
+
+.kpi-table {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  border-collapse: collapse;
+  overflow: hidden;
+}
+
+.kpi-table caption {
+  padding-bottom: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: left;
+}
+
+.kpi-table th,
+.kpi-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.kpi-table thead th {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kpi-table tbody th {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.kpi-table tbody tr:last-child th,
+.kpi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Columns of numbers align; standalone figures elsewhere stay proportional. */
+.kpi-table .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.kpi-table .muted {
+  color: var(--text-muted);
+}
+
+/* ---------------------------- environment ------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .meter__fill,
+  .page-body {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .tile,
+  .hero,
+  .kpi-table,
+  .meter {
+    border: 1px solid CanvasText;
+  }
+
+  .meter__fill {
+    background: Highlight;
+  }
+}
+
+@media print {
+  .page-actions {
+    display: none;
+  }
+}
