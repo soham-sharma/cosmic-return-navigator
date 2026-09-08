@@ -1,26 +1,23 @@
 {
-  "name": "cosmic-return-navigator-frontend",
+  "name": "cosmic-return-navigator",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "description": "Frontend for the Cosmic Return Navigator. Node + TypeScript, no framework, no bundler.",
-  "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "watch:client": "tsc -p tsconfig.client.json --watch",
-    "build": "tsc -p tsconfig.client.json",
-    "start": "npm run build && tsx src/server.ts",
-    "typecheck": "tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.server.json --noEmit"
-  },
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
   "dependencies": {
-    "express": "^4.19.2"
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.460.0",
+    "framer-motion": "^11.3.0",
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.14.10",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
-  },
-  "engines": {
-    "node": ">=20.0.0"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5"
   }
 }

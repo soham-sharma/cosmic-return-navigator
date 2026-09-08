@@ -4,6 +4,8 @@ node_modules/
 # Build output
 dist/
 build/
+.next/
+tsconfig.tsbuildinfo
 
 # Environment - NEVER commit real credentials
 .env
