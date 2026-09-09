@@ -57,6 +57,10 @@ export default function Navbar() {
               New return
             </Link>
 
+            <Link href="/kpi" className="nav-link" style={{ fontSize: '14px' }}>
+              KPI Dashboard
+            </Link>
+
             {/* User chip */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div

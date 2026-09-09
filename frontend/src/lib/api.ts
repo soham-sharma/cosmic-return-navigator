@@ -11,7 +11,7 @@
  * Backend response envelope: { success: boolean; data: T; meta: {...} }
  */
 
-import type { OrderLookupRequest, Order, ReturnSubmission, ReturnResponse } from './types';
+import type { OrderLookupRequest, Order, ReturnSubmission, ReturnResponse, KpiSnapshot } from './types';
 import { getUser } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -25,6 +25,34 @@ async function unwrap<T>(res: Response): Promise<T> {
   const body = await res.json();
   if (!body.success) throw new Error(body.error?.message ?? 'API error');
   return body.data as T;
+}
+
+// ── KPI dashboard ─────────────────────────────────────────────────────────────
+
+export type DataSource = 'live' | 'mock';
+
+export interface Loaded<T> {
+  data: T;
+  source: DataSource;
+  /** Why we fell back. Null when source is 'live'. */
+  reason: string | null;
+}
+
+export async function loadKpis(windowDays = 30): Promise<Loaded<KpiSnapshot>> {
+  if (API_URL) {
+    try {
+      const res = await fetch(`${API_URL}/analytics/kpis?windowDays=${windowDays}`);
+      const data = await unwrap<KpiSnapshot>(res);
+      return { data, source: 'live', reason: null };
+    } catch (err) {
+      return {
+        data: MOCK_KPI_SNAPSHOT,
+        source: 'mock',
+        reason: err instanceof Error ? err.message : 'Unknown error',
+      };
+    }
+  }
+  return { data: MOCK_KPI_SNAPSHOT, source: 'mock', reason: 'API_URL not configured' };
 }
 
 // ── User orders ───────────────────────────────────────────────────────────────
@@ -326,5 +354,44 @@ const MOCK_ORDERS: Record<string, Order> = {
       { id: 'item-5', name: 'Cosmic Explorer Jacket', sku: 'SKU-JKT-EXP', price: 99.99, quantity: 1 },
       { id: 'item-6', name: 'Nebula Graphic Tee', sku: 'SKU-TEE-NBL', price: 34.99, quantity: 1 },
     ],
+  },
+};
+
+export const MOCK_KPI_SNAPSHOT: KpiSnapshot = {
+  windowDays: 30,
+  generatedAt: '2026-09-08T00:00:00.000Z',
+
+  totalReturns: 214,
+  returnRatePct: 5.1,
+  avgTurnaroundHours: 38.4,
+  automationRatePct: 78.5,
+  ticketDeflectionPct: 71.2,
+
+  avgCostPerReturnUsd: 24.8,
+  totalReturnCostUsd: 5307.2,
+  retainedRevenueUsd: 148300.0,
+  repeatPurchaseRatePct: 62.4,
+
+  avgCsat: 4.3,
+  nps: 31,
+
+  co2PreventedKg: 412.6,
+  sustainableReturnPct: 31.0,
+  packagingWasteAvoidedKg: 58.2,
+
+  escalationRatePct: 12.6,
+  insightsGenerated: 17,
+  insightsActioned: 6,
+
+  deltas: {
+    returnRatePct: -0.4,
+    avgTurnaroundHours: -19.6,
+    automationRatePct: 12.3,
+    avgCostPerReturnUsd: -6.2,
+    avgCsat: 0.5,
+    nps: 9,
+    co2PreventedKg: 118.4,
+    sustainableReturnPct: 8.0,
+    ticketDeflectionPct: 15.1,
   },
 };
