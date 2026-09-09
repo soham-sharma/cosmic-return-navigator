@@ -12,8 +12,8 @@ export default function ProcessingScreen() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const STEP_DURATION_MS = 700;
-    const TOTAL_MS = 4500;
+    const STEP_DURATION_MS = 1600;
+    const TOTAL_MS = 9500;
     const stepCount = PROCESSING_STEPS.length;
 
     let stepIdx = 0;

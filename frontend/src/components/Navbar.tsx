@@ -2,25 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { LogOut, Sun, Moon } from 'lucide-react';
 import { getUser, logout, type AuthUser } from '@/lib/auth';
 
 const THEME_KEY = 'crn_theme';
 
 export default function Navbar() {
-  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [mounted, setMounted] = useState(false);
 
+  // Re-read auth on every route change so logging in/out always reflects immediately.
   useEffect(() => {
     setUser(getUser());
-    const saved = (localStorage.getItem(THEME_KEY) as 'dark' | 'light') || 'dark';
-    setTheme(saved);
-    document.documentElement.setAttribute('data-theme', saved);
-    setMounted(true);
-  }, []);
+    if (!mounted) {
+      const saved = (localStorage.getItem(THEME_KEY) as 'dark' | 'light') || 'dark';
+      setTheme(saved);
+      document.documentElement.setAttribute('data-theme', saved);
+      setMounted(true);
+    }
+  }, [pathname]); 
 
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -32,7 +35,7 @@ export default function Navbar() {
   function handleLogout() {
     logout();
     setUser(null);
-    router.push('/');
+    window.location.replace('/');
   }
 
   const iconBtn: React.CSSProperties = {
@@ -80,10 +83,6 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {user ? (
             <>
-              <Link href="/return" className="nav-link" style={{ fontSize: '14px' }}>
-                New return
-              </Link>
-
               {/* User chip */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div
@@ -118,14 +117,9 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <>
-              <Link href="/return" className="nav-link" style={{ fontSize: '14px' }}>
-                Track a return
-              </Link>
-              <Link href="/login" className="btn-primary" style={{ fontSize: '13px', padding: '7px 18px' }}>
-                Sign in
-              </Link>
-            </>
+            <Link href="/login" className="btn-primary" style={{ fontSize: '13px', padding: '7px 18px' }}>
+              Sign in
+            </Link>
           )}
 
           {/* Theme toggle */}

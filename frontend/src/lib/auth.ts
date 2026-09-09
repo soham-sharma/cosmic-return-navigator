@@ -7,6 +7,23 @@ export interface AuthUser {
   loyaltyPoints?: number;
 }
 
+export interface StoredReturn {
+  returnId: string;
+  orderId: string;
+  returnedItemIds: string[]; // IDs of specific items returned
+  productNames: string[];
+  submittedAt: string; // ISO date string
+  status: string;
+  resolution?: string;
+  resolutionDetail?: string;
+  estimatedRefund?: number;
+  bonusPoints?: number;
+  co2Saved?: number;
+  pickupDate?: string;
+  trackingNumber?: string;
+  nextSteps?: string[];
+}
+
 const AUTH_KEY = 'crn_auth';
 
 const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
@@ -41,6 +58,25 @@ export async function login(email: string, password: string): Promise<AuthUser> 
 export function logout(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(AUTH_KEY);
+}
+
+const RETURNS_PREFIX = 'crn_returns_';
+
+export function getStoredReturns(email: string): StoredReturn[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(RETURNS_PREFIX + email);
+    return raw ? (JSON.parse(raw) as StoredReturn[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addStoredReturn(email: string, entry: StoredReturn): void {
+  if (typeof window === 'undefined') return;
+  const existing = getStoredReturns(email);
+  const deduped = existing.filter(r => r.returnId !== entry.returnId);
+  localStorage.setItem(RETURNS_PREFIX + email, JSON.stringify([entry, ...deduped]));
 }
 
 export function getUser(): AuthUser | null {

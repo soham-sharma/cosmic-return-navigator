@@ -7,7 +7,7 @@ import { Package, ChevronRight, ArrowLeft } from 'lucide-react';
 import { getUserOrders, submitReturn } from '@/lib/api';
 import { RETURN_REASONS } from '@/lib/mock-data';
 import type { Order, ReturnReason, ReturnResponse } from '@/lib/types';
-import { getUser } from '@/lib/auth';
+import { getUser, addStoredReturn, getStoredReturns, type StoredReturn } from '@/lib/auth';
 import StepProgress from '@/components/StepProgress';
 import ProcessingScreen from '@/components/ProcessingScreen';
 import ResolutionCard from '@/components/ResolutionCard';
@@ -25,6 +25,28 @@ export default function ReturnPage() {
   const [description, setDescription] = useState('');
   const [result, setResult] = useState<ReturnResponse | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [returnedItemIds, setReturnedItemIds] = useState<Set<string>>(new Set());
+  const [filedReturns, setFiledReturns] = useState<StoredReturn[]>([]);
+
+  function loadReturnedItems() {
+    const user = getUser();
+    if (!user) return;
+    const all = getStoredReturns(user.email);
+    setFiledReturns(all);
+    setReturnedItemIds(new Set(all.flatMap(r => r.returnedItemIds ?? [])));
+  }
+
+  const RESOLUTION_LABELS: Record<string, string> = {
+    refund: 'Refund', exchange: 'Exchange', store_credit: 'Store credit', repair: 'Repair', escalated: 'Escalated',
+  };
+
+  function returnBadgeLabel(ret: StoredReturn): string {
+    const res = ret.resolution ? (RESOLUTION_LABELS[ret.resolution] ?? ret.resolution) : 'Return';
+    if (ret.status === 'approved')  return `${res} approved`;
+    if (ret.status === 'denied')    return 'Denied';
+    if (ret.status === 'escalated') return 'Under review';
+    return `${res} pending`;
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -33,11 +55,22 @@ export default function ReturnPage() {
       router.replace('/login');
       return;
     }
+    loadReturnedItems();
     getUserOrders(user.email).then(o => {
       setOrders(o);
       setOrdersLoading(false);
     });
-  }, [router]);
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function resetReturn() {
+    setStep(1);
+    setOrder(null);
+    setSelectedItemIds([]);
+    setReason('');
+    setDescription('');
+    setResult(null);
+    loadReturnedItems();
+  }
 
   function selectOrder(o: Order) {
     setOrder(o);
@@ -56,14 +89,38 @@ export default function ReturnPage() {
     const user = getUser();
     setStep(4);
     try {
-      const res = await submitReturn({
-        orderId: order.id,
-        email: user?.email ?? '',
-        selectedItemIds,
-        reason: reason as ReturnReason,
-        description,
-      });
+      const MIN_DISPLAY_MS = 9500;
+      const [res] = await Promise.all([
+        submitReturn({
+          orderId: order.id,
+          email: user?.email ?? '',
+          selectedItemIds,
+          reason: reason as ReturnReason,
+          description,
+        }),
+        new Promise<void>(resolve => setTimeout(resolve, MIN_DISPLAY_MS)),
+      ]);
       setResult(res);
+      if (user && order) {
+        const itemsToReturn = selectedItemIds.length > 0 ? selectedItemIds : order.items.map(i => i.id);
+        const selectedItems = order.items.filter(i => itemsToReturn.includes(i.id));
+        addStoredReturn(user.email, {
+          returnId: res.returnId,
+          orderId: order.id,
+          returnedItemIds: itemsToReturn,
+          productNames: selectedItems.map(i => i.name),
+          submittedAt: new Date().toISOString(),
+          status: res.status,
+          resolution: res.resolution,
+          resolutionDetail: res.resolutionDetail,
+          estimatedRefund: res.estimatedRefund,
+          bonusPoints: res.bonusPoints,
+          co2Saved: res.co2Saved,
+          pickupDate: res.pickupDate,
+          trackingNumber: res.trackingNumber,
+          nextSteps: res.nextSteps,
+        });
+      }
     } catch {
       // ProcessingScreen stays visible — result null
     }
@@ -121,7 +178,9 @@ export default function ReturnPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {orders.map(o => {
                 const days = daysSince(o.date);
-                const eligible = days <= 30;
+                const allItemsReturned = o.items.length > 0 && o.items.every(i => returnedItemIds.has(i.id));
+                const eligible = days <= 30 && !allItemsReturned;
+                const orderReturn = filedReturns.find(r => r.orderId === o.id);
                 return (
                   <button
                     key={o.id}
@@ -180,17 +239,13 @@ export default function ReturnPage() {
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                           {formatDate(o.date)}
                         </span>
-                        {!eligible && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              background: 'rgba(239,68,68,0.1)',
-                              border: '1px solid rgba(239,68,68,0.2)',
-                              color: '#f87171',
-                              borderRadius: '999px',
-                              padding: '1px 8px',
-                            }}
-                          >
+                        {allItemsReturned && orderReturn && (
+                          <span style={{ fontSize: '11px', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: 'var(--purple-light)', borderRadius: '999px', padding: '1px 8px', textTransform: 'capitalize' }}>
+                            {returnBadgeLabel(orderReturn)}
+                          </span>
+                        )}
+                        {!allItemsReturned && days > 30 && (
+                          <span style={{ fontSize: '11px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', borderRadius: '999px', padding: '1px 8px' }}>
                             Outside return window
                           </span>
                         )}
@@ -254,24 +309,28 @@ export default function ReturnPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px', marginTop: '24px' }}>
             {order.items.map(item => {
+              const alreadyReturned = returnedItemIds.has(item.id);
+              const itemReturn = alreadyReturned ? filedReturns.find(r => (r.returnedItemIds ?? []).includes(item.id)) : undefined;
               const selected = selectedItemIds.includes(item.id);
               return (
                 <div
                   key={item.id}
                   role="checkbox"
                   aria-checked={selected}
-                  tabIndex={0}
-                  onClick={() => toggleItem(item.id)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleItem(item.id); }}
+                  aria-disabled={alreadyReturned}
+                  tabIndex={alreadyReturned ? -1 : 0}
+                  onClick={() => !alreadyReturned && toggleItem(item.id)}
+                  onKeyDown={e => { if (!alreadyReturned && (e.key === 'Enter' || e.key === ' ')) toggleItem(item.id); }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px',
                     padding: '16px 20px',
-                    border: `1px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
+                    border: `1px solid ${alreadyReturned ? 'var(--border)' : selected ? 'var(--purple)' : 'var(--border)'}`,
                     borderRadius: '10px',
-                    background: selected ? 'var(--purple-pale)' : 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer',
+                    background: alreadyReturned ? 'rgba(255,255,255,0.01)' : selected ? 'var(--purple-pale)' : 'rgba(255,255,255,0.02)',
+                    cursor: alreadyReturned ? 'not-allowed' : 'pointer',
+                    opacity: alreadyReturned ? 0.45 : 1,
                     transition: 'all 0.2s',
                     outline: 'none',
                   }}
@@ -292,8 +351,13 @@ export default function ReturnPage() {
                     )}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>
-                      {item.name}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>{item.name}</span>
+                      {alreadyReturned && itemReturn && (
+                        <span style={{ fontSize: '11px', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: 'var(--purple-light)', borderRadius: '999px', padding: '1px 8px', textTransform: 'capitalize' }}>
+                          {returnBadgeLabel(itemReturn)}
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                       {item.sku} · Qty {item.quantity}
@@ -406,19 +470,10 @@ export default function ReturnPage() {
       {/* ── Step 4 — Processing & result ─────────────────────────────────────── */}
       {step === 4 && (
         <div className="fade-in">
-          {result ? <ResolutionCard result={result} /> : <ProcessingScreen />}
+          {result ? <ResolutionCard result={result} onStartAnother={resetReturn} /> : <ProcessingScreen />}
         </div>
       )}
 
-      {/* Guest fallback link */}
-      {step === 1 && !ordersLoading && (
-        <p style={{ textAlign: 'center', marginTop: '32px', fontSize: '13px', color: 'var(--text-muted)' }}>
-          Not your account?{' '}
-          <Link href="/login" style={{ color: 'var(--purple-light)', textDecoration: 'none' }}>
-            Sign in with a different account
-          </Link>
-        </p>
-      )}
     </div>
   );
 }

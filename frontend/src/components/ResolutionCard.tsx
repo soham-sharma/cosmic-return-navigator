@@ -7,6 +7,7 @@ import type { ReturnResponse } from '@/lib/types';
 
 interface Props {
   result: ReturnResponse;
+  onStartAnother?: () => void;
 }
 
 const RESOLUTION_LABELS: Record<string, string> = {
@@ -17,7 +18,7 @@ const RESOLUTION_LABELS: Record<string, string> = {
   escalated: 'Escalated',
 };
 
-export default function ResolutionCard({ result }: Props) {
+export default function ResolutionCard({ result, onStartAnother }: Props) {
   const [copied, setCopied] = useState(false);
 
   function copyTracking() {
@@ -373,9 +374,15 @@ export default function ResolutionCard({ result }: Props) {
         <Link href="/" className="btn-secondary">
           Done
         </Link>
-        <Link href="/return" className="btn-primary">
-          Start another return
-        </Link>
+        {onStartAnother ? (
+          <button className="btn-primary" onClick={onStartAnother}>
+            Start another return
+          </button>
+        ) : (
+          <Link href="/return" className="btn-primary">
+            Start another return
+          </Link>
+        )}
       </div>
     </div>
   );
