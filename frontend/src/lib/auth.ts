@@ -62,11 +62,34 @@ export function logout(): void {
 
 const RETURNS_PREFIX = 'crn_returns_';
 
+// Deduplicate returns: newest-first array, keep first occurrence of each item ID.
+// Legacy returns (no returnedItemIds) are deduplicated by orderId.
+function deduplicateReturns(returns: StoredReturn[]): StoredReturn[] {
+  const seenItemIds = new Set<string>();
+  const seenLegacyOrderIds = new Set<string>();
+  return returns.filter(ret => {
+    const ids = ret.returnedItemIds;
+    if (ids && ids.length > 0) {
+      const hasNew = ids.some(id => !seenItemIds.has(id));
+      if (!hasNew) return false; // every item already covered by a newer return
+      ids.forEach(id => seenItemIds.add(id));
+      return true;
+    } else {
+      // Legacy entry with no item IDs — keep only once per order
+      if (seenLegacyOrderIds.has(ret.orderId)) return false;
+      seenLegacyOrderIds.add(ret.orderId);
+      return true;
+    }
+  });
+}
+
 export function getStoredReturns(email: string): StoredReturn[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(RETURNS_PREFIX + email);
-    return raw ? (JSON.parse(raw) as StoredReturn[]) : [];
+    if (!raw) return [];
+    const all = JSON.parse(raw) as StoredReturn[];
+    return deduplicateReturns(all);
   } catch {
     return [];
   }
@@ -74,9 +97,18 @@ export function getStoredReturns(email: string): StoredReturn[] {
 
 export function addStoredReturn(email: string, entry: StoredReturn): void {
   if (typeof window === 'undefined') return;
-  const existing = getStoredReturns(email);
-  const deduped = existing.filter(r => r.returnId !== entry.returnId);
-  localStorage.setItem(RETURNS_PREFIX + email, JSON.stringify([entry, ...deduped]));
+  const existing = getStoredReturns(email); // already deduplicated
+  const newIds = new Set(entry.returnedItemIds ?? []);
+  // Drop any existing return that overlaps on item IDs for the same order
+  const deduped = existing.filter(r => {
+    if (r.returnId === entry.returnId) return false;
+    if (r.orderId === entry.orderId && newIds.size > 0) {
+      return !(r.returnedItemIds ?? []).some(id => newIds.has(id));
+    }
+    return true;
+  });
+  const updated = [entry, ...deduped];
+  localStorage.setItem(RETURNS_PREFIX + email, JSON.stringify(updated));
 }
 
 export function getUser(): AuthUser | null {

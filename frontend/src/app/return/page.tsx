@@ -178,7 +178,11 @@ export default function ReturnPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {orders.map(o => {
                 const days = daysSince(o.date);
-                const allItemsReturned = o.items.length > 0 && o.items.every(i => returnedItemIds.has(i.id));
+                const legacyBlock = filedReturns.some(
+                  r => r.orderId === o.id && (!r.returnedItemIds || r.returnedItemIds.length === 0)
+                );
+                const allItemsReturned = legacyBlock ||
+                  (o.items.length > 0 && o.items.every(i => returnedItemIds.has(i.id)));
                 const eligible = days <= 30 && !allItemsReturned;
                 const orderReturn = filedReturns.find(r => r.orderId === o.id);
                 return (
