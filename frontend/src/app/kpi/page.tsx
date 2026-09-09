@@ -398,7 +398,6 @@ export default function KpiPage() {
   const [loaded, setLoaded]         = useState<Loaded<KpiSnapshot> | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showTable, setShowTable]   = useState(false);
-  const [themeLabel, setThemeLabel] = useState('Dark mode');
 
   useEffect(() => {
     let active = true;
@@ -410,14 +409,6 @@ export default function KpiPage() {
     setRefreshing(true);
     setLoaded(await loadKpis());
     setRefreshing(false);
-  };
-
-  // Mirrors the toggle from the original kpi-dashboard.ts: flips data-theme on
-  // <html> and updates the button label to reflect the resulting state.
-  const toggleTheme = () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    setThemeLabel(isDark ? 'Dark mode' : 'Light mode');
   };
 
   const snapshot = loaded?.data ?? null;
@@ -483,18 +474,6 @@ export default function KpiPage() {
             }}
           >
             {showTable ? 'Tile view' : 'Table view'}
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            style={{
-              ...btnBase,
-              border: '1px solid var(--border)',
-              background: 'rgba(255,255,255,0.04)',
-              color: 'var(--text)',
-            }}
-          >
-            {themeLabel}
           </button>
           <button
             type="button"
