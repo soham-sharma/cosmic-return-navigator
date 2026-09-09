@@ -12,6 +12,7 @@
  */
 
 import type { OrderLookupRequest, Order, ReturnSubmission, ReturnResponse } from './types';
+import { getUser } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 // SSE must bypass the Next.js proxy (which buffers streaming responses).
@@ -30,9 +31,8 @@ async function unwrap<T>(res: Response): Promise<T> {
 
 export async function getUserOrders(emailOrCustomerId: string): Promise<Order[]> {
   if (API_URL) {
-    // Derive customerId: if email passed, use CUST-001001 (demo only has one customer).
-    // When multi-tenant auth lands, swap for a real lookup.
-    const customerId = emailOrCustomerId.includes('@') ? 'CUST-001001' : emailOrCustomerId;
+    const user = getUser();
+    const customerId = user?.customerId ?? (emailOrCustomerId.includes('@') ? 'CUST-001001' : emailOrCustomerId);
     const res = await fetch(`${API_URL}/customers/${customerId}/orders`);
     if (!res.ok) return [];
     const raw: BackendOrder[] = await unwrap<BackendOrder[]>(res);
@@ -71,7 +71,7 @@ export async function submitReturn(submission: ReturnSubmission): Promise<Return
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text,
-        customerId: 'CUST-001001',
+        customerId: getUser()?.customerId ?? 'CUST-001001',
         orderId: submission.orderId,
         orderItemId: firstItemId,
         channel: 'IN_APP',
@@ -79,11 +79,12 @@ export async function submitReturn(submission: ReturnSubmission): Promise<Return
       }),
     });
     if (!intakeRes.ok) throw new Error('Failed to submit return');
-    const intake: { caseId: string; streamUrl: string } = await unwrap(intakeRes);
-    const { caseId, streamUrl } = intake;
+    const intake: { caseId: string } = await unwrap(intakeRes);
+    const { caseId } = intake;
 
-    // Wait for the SSE stream to signal completion
-    await waitForStream(streamUrl);
+    // Poll until pipeline reaches a terminal state (more reliable than SSE
+    // when the pipeline may complete before the EventSource connects)
+    await pollUntilDone(caseId);
 
     // Fetch the final outcome
     const outcomeRes = await fetch(`${API_URL}/returns/cases/${caseId}/outcome`);
@@ -134,20 +135,28 @@ export async function getReturnStatus(returnId: string): Promise<ReturnResponse 
   };
 }
 
-// ── SSE helper ────────────────────────────────────────────────────────────────
+// ── Polling helper ────────────────────────────────────────────────────────────
 
-function waitForStream(streamUrl: string): Promise<void> {
-  // streamUrl is a relative path from the backend (e.g. /api/v1/returns/cases/.../stream).
-  // Resolve it against the backend origin directly — Next.js proxy buffers SSE.
-  const fullUrl = streamUrl.startsWith('http') ? streamUrl : `${BACKEND_ORIGIN}${streamUrl}`;
-  return new Promise((resolve, reject) => {
-    const es = new EventSource(fullUrl);
-    es.addEventListener('done', () => { es.close(); resolve(); });
-    es.addEventListener('error', () => { es.close(); reject(new Error('Stream error')); });
-    // Safety timeout: 5 minutes
-    const timeout = setTimeout(() => { es.close(); resolve(); }, 300_000);
-    es.addEventListener('done', () => clearTimeout(timeout));
-  });
+const TERMINAL_STATUSES = new Set([
+  'COMPLETED', 'ESCALATED', 'DENIED', 'CANCELLED', 'FAILED',
+]);
+
+async function pollUntilDone(caseId: string): Promise<void> {
+  const url = `${BACKEND_ORIGIN}/api/v1/returns/cases/${caseId}/agents`;
+  const deadline = Date.now() + 300_000; // 5-minute hard cap
+
+  while (Date.now() < deadline) {
+    await delay(2000);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const body = await res.json();
+        if (body.success && TERMINAL_STATUSES.has(body.data?.status)) return;
+      }
+    } catch {
+      // network blip — keep polling
+    }
+  }
 }
 
 // ── Backend type shapes ───────────────────────────────────────────────────────

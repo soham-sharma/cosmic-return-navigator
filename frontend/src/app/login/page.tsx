@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login, MOCK_CREDENTIALS } from '@/lib/auth';
+import { login, DEMO_CUSTOMERS } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,15 +20,23 @@ export default function LoginPage() {
     }
     setError('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    login(email);
-    router.push('/');
+    try {
+      await login(email, password);
+      router.push('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function fillDemo() {
-    setEmail(MOCK_CREDENTIALS.email);
-    setPassword(MOCK_CREDENTIALS.password);
-    setError('');
+  function fillDemo(idx: number) {
+    const c = DEMO_CUSTOMERS[idx];
+    if (c) {
+      setEmail(c.email);
+      setPassword(c.password);
+      setError('');
+    }
   }
 
   return (
@@ -41,7 +49,7 @@ export default function LoginPage() {
         padding: '24px',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '400px' }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -147,7 +155,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Demo hint */}
+        {/* Demo accounts */}
         <div
           style={{
             marginTop: '20px',
@@ -158,23 +166,20 @@ export default function LoginPage() {
           }}
         >
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 500 }}>
-            Demo credentials
+            Demo accounts — password for all: <span style={{ fontFamily: 'monospace', color: 'var(--purple-light)' }}>cosmic123</span>
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--purple-light)' }}>
-              {MOCK_CREDENTIALS.email}
-            </span>
-            <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--purple-light)' }}>
-              {MOCK_CREDENTIALS.password}
-            </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {DEMO_CUSTOMERS.map((c, i) => (
+              <button
+                key={c.email}
+                onClick={() => fillDemo(i)}
+                className="btn-secondary"
+                style={{ fontSize: '12px', padding: '6px 12px', textAlign: 'left', width: '100%' }}
+              >
+                {c.label}
+              </button>
+            ))}
           </div>
-          <button
-            onClick={fillDemo}
-            className="btn-secondary"
-            style={{ fontSize: '12px', padding: '6px 14px', width: '100%' }}
-          >
-            Fill demo credentials
-          </button>
         </div>
 
         <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>

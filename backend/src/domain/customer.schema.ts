@@ -61,6 +61,8 @@ export const CustomerSchema = z.object({
   lastName: z.string(),
   email: z.string().email(),
   phone: z.string().nullable().default(null),
+  /** Demo-only plaintext password for the login screen. Never returned to the frontend. */
+  password: z.string().optional(),
 
   loyaltyTier: LoyaltyTierSchema,
   loyaltyPoints: z.number().int().nonnegative().default(0),

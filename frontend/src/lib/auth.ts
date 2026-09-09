@@ -1,29 +1,41 @@
 export interface AuthUser {
   name: string;
   email: string;
-  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+  tier: string;
   initials: string;
   customerId: string;
+  loyaltyPoints?: number;
 }
 
 const AUTH_KEY = 'crn_auth';
 
-export const MOCK_CREDENTIALS = {
-  email: 'alex.rivera@example.com',
-  password: 'cosmic123',
-};
+const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
 
-const MOCK_USER: AuthUser = {
-  name: 'Alex Rivera',
-  email: 'alex.rivera@example.com',
-  tier: 'Gold',
-  initials: 'AR',
-  customerId: 'CUST-001001',
-};
+export const DEMO_CUSTOMERS: Array<{ email: string; password: string; label: string }> = [
+  { email: 'alex.rivera@example.com',   password: 'cosmic123', label: 'Alex Rivera — Gold' },
+  { email: 'priya.raman@example.com',   password: 'cosmic123', label: 'Priya Raman — Platinum VIP' },
+  { email: 'morgan.diaz@example.com',   password: 'cosmic123', label: 'Morgan Diaz — Gold' },
+  { email: 'sana.iqbal@example.com.au', password: 'cosmic123', label: 'Sana Iqbal — Gold (Remote AU)' },
+  { email: 'tomas.vogel@example.de',    password: 'cosmic123', label: 'Tomas Vogel — Silver (EU)' },
+  { email: 'jamie.osei@example.com',    password: 'cosmic123', label: 'Jamie Osei — Standard' },
+  { email: 'riley.chen@example.com',    password: 'cosmic123', label: 'Riley Chen — Standard (Fraud)' },
+];
 
-export function login(email: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(AUTH_KEY, JSON.stringify({ ...MOCK_USER, email }));
+export async function login(email: string, password: string): Promise<AuthUser> {
+  const res = await fetch(`${BACKEND_ORIGIN}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error?.message ?? 'Invalid email or password.');
+  }
+  const user: AuthUser = body.data;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+  }
+  return user;
 }
 
 export function logout(): void {

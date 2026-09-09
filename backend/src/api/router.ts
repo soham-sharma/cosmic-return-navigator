@@ -17,11 +17,15 @@ import {
   sustainabilityRouter,
 } from './routes/operations.routes';
 import { demoRouter, metaRouter } from './routes/meta.routes';
+import { authRouter } from './routes/auth.routes';
 
 export const API_PREFIX = '/api/v1';
 
 export function buildApiRouter(): Router {
   const router = Router();
+
+  /* --- auth --- */
+  router.use('/auth', authRouter);
 
   /* --- core workflow --- */
   router.use('/returns', returnsRouter);
