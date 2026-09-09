@@ -58,9 +58,52 @@ export async function lookupOrder(req: OrderLookupRequest): Promise<Order | null
   return MOCK_ORDERS[req.orderId] ?? null;
 }
 
+// ── Hardcoded demo outcomes (instant, no LLM) ─────────────────────────────────
+
+const DEMO_OUTCOMES: Record<string, (s: ReturnSubmission) => ReturnResponse> = {
+  'CUST-001001': (s) => ({
+    returnId: `RET-${Math.floor(Math.random() * 90000) + 10000}`,
+    status: 'approved',
+    resolution: s.reason === 'changed_mind' ? 'store_credit' : 'exchange',
+    resolutionDetail:
+      s.reason === 'changed_mind'
+        ? "As a valued Gold member we're issuing full store credit — no need to return the item."
+        : "We'll ship a replacement to your San Francisco address within 2–3 business days. A prepaid return label is in your inbox.",
+    estimatedRefund: s.reason === 'changed_mind' ? undefined : undefined,
+    bonusPoints: 500,
+    co2Saved: 2.1,
+    trackingNumber: `1Z999AA1${Math.floor(Math.random() * 100000000)}`,
+    nextSteps: [
+      'A prepaid FedEx label has been sent to alex.rivera@example.com.',
+      'Drop off at any FedEx location or schedule a free home pickup.',
+      'Replacement ships within 24 hours of us receiving your return.',
+      '500 Cosmic Rewards points have been added to your account.',
+    ],
+  }),
+  'CUST-001005': (_s) => ({
+    returnId: `RET-${Math.floor(Math.random() * 90000) + 10000}`,
+    status: 'escalated',
+    resolution: 'escalated',
+    resolutionDetail:
+      'Your return request has been flagged for manual review by our customer trust team due to unusual account activity. A specialist will contact you within 24 hours.',
+    nextSteps: [
+      'Our customer trust team will review your case.',
+      'You will receive an email at riley.chen@example.com within 24 hours.',
+      'Please do not ship the item until you hear from us.',
+    ],
+  }),
+};
+
 // ── Return submission ─────────────────────────────────────────────────────────
 
 export async function submitReturn(submission: ReturnSubmission): Promise<ReturnResponse> {
+  const customerId = getUser()?.customerId ?? '';
+  const demoFn = DEMO_OUTCOMES[customerId];
+  if (demoFn) {
+    await delay(1800);
+    return demoFn(submission);
+  }
+
   if (API_URL) {
     const text = buildReturnText(submission);
     const firstItemId = submission.selectedItemIds[0] ?? '';
