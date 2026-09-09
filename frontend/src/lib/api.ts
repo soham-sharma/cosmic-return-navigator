@@ -14,6 +14,9 @@
 import type { OrderLookupRequest, Order, ReturnSubmission, ReturnResponse } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+// SSE must bypass the Next.js proxy (which buffers streaming responses).
+// Point directly at the backend origin for EventSource connections.
+const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
 
 // ── Envelope unwrapper ────────────────────────────────────────────────────────
 
@@ -71,7 +74,7 @@ export async function submitReturn(submission: ReturnSubmission): Promise<Return
         customerId: 'CUST-001001',
         orderId: submission.orderId,
         orderItemId: firstItemId,
-        channel: 'WEB',
+        channel: 'IN_APP',
         async: true,
       }),
     });
@@ -134,8 +137,11 @@ export async function getReturnStatus(returnId: string): Promise<ReturnResponse 
 // ── SSE helper ────────────────────────────────────────────────────────────────
 
 function waitForStream(streamUrl: string): Promise<void> {
+  // streamUrl is a relative path from the backend (e.g. /api/v1/returns/cases/.../stream).
+  // Resolve it against the backend origin directly — Next.js proxy buffers SSE.
+  const fullUrl = streamUrl.startsWith('http') ? streamUrl : `${BACKEND_ORIGIN}${streamUrl}`;
   return new Promise((resolve, reject) => {
-    const es = new EventSource(streamUrl);
+    const es = new EventSource(fullUrl);
     es.addEventListener('done', () => { es.close(); resolve(); });
     es.addEventListener('error', () => { es.close(); reject(new Error('Stream error')); });
     // Safety timeout: 5 minutes
