@@ -108,6 +108,25 @@ const DEMO_OUTCOMES: Record<string, (s: ReturnSubmission) => ReturnResponse> = {
       '500 Cosmic Rewards points have been added to your account.',
     ],
   }),
+  'CUST-001004': (s) => {
+    if (s.reason === 'changed_mind') {
+      return {
+        returnId: `RET-${Math.floor(Math.random() * 90000) + 10000}`,
+        status: 'approved' as const,
+        resolution: 'store_credit' as const,
+        resolutionDetail:
+          "Under EU consumer rights you have a 14-day withdrawal right. We're issuing full store credit to your account — no questions asked.",
+        bonusPoints: 200,
+        nextSteps: [
+          'Store credit has been added to your Cosmic Mart account.',
+          'Drop off the item at any partner location — a prepaid label is in your inbox.',
+          'Credit is available immediately and never expires.',
+        ],
+      };
+    }
+    // For all other reasons, fall through to the live pipeline
+    return null as unknown as ReturnResponse;
+  },
   'CUST-001005': (_s) => ({
     returnId: `RET-${Math.floor(Math.random() * 90000) + 10000}`,
     status: 'escalated',
@@ -128,8 +147,12 @@ export async function submitReturn(submission: ReturnSubmission): Promise<Return
   const customerId = getUser()?.customerId ?? '';
   const demoFn = DEMO_OUTCOMES[customerId];
   if (demoFn) {
-    await delay(1800);
-    return demoFn(submission);
+    const result = demoFn(submission);
+    if (result != null) {
+      await delay(1800);
+      return result;
+    }
+    // null means this account/reason combo falls through to the live pipeline
   }
 
   if (API_URL) {
