@@ -15,8 +15,68 @@ const RESOLUTION_LABELS: Record<string, string> = {
   exchange: 'Exchange',
   store_credit: 'Store Credit',
   repair: 'Repair',
-  escalated: 'Escalated',
+  escalated: 'Under Review',
 };
+
+type StatusConfig = {
+  iconColor: string;
+  ringColor: string;
+  bgColor: string;
+  icon: React.ReactNode;
+  heading: string;
+  stepsLabel: string;
+  showResolutionTile: boolean;
+};
+
+function getStatusConfig(status: ReturnResponse['status']): StatusConfig {
+  if (status === 'denied') {
+    return {
+      iconColor: '#f59e0b',
+      ringColor: 'rgba(245,158,11,0.4)',
+      bgColor: 'rgba(245,158,11,0.1)',
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="10" stroke="#f59e0b" strokeWidth="2.2" />
+          <path d="M14 9v6" stroke="#f59e0b" strokeWidth="2.2" strokeLinecap="round" />
+          <circle cx="14" cy="19" r="1.2" fill="#f59e0b" />
+        </svg>
+      ),
+      heading: "We've reviewed your request",
+      stepsLabel: 'What happens next',
+      showResolutionTile: false,
+    };
+  }
+  if (status === 'escalated') {
+    return {
+      iconColor: '#a78bfa',
+      ringColor: 'rgba(167,139,250,0.4)',
+      bgColor: 'rgba(167,139,250,0.1)',
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="10" stroke="#a78bfa" strokeWidth="2.2" />
+          <path d="M14 8v7l4 2.5" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      heading: 'Your case is being reviewed',
+      stepsLabel: 'What happens next',
+      showResolutionTile: false,
+    };
+  }
+  // approved (default)
+  return {
+    iconColor: '#10b981',
+    ringColor: 'rgba(16,185,129,0.4)',
+    bgColor: 'rgba(16,185,129,0.12)',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M5 14l6 6L23 8" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    heading: 'Return approved!',
+    stepsLabel: 'Next steps',
+    showResolutionTile: true,
+  };
+}
 
 export default function ResolutionCard({ result, onStartAnother }: Props) {
   const [copied, setCopied] = useState(false);
@@ -29,6 +89,7 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
     });
   }
 
+  const cfg = getStatusConfig(result.status);
   const resolutionLabel =
     (result.resolution && RESOLUTION_LABELS[result.resolution]) ?? 'Resolution';
 
@@ -44,29 +105,15 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            background: 'rgba(16, 185, 129, 0.12)',
-            border: '2px solid rgba(16, 185, 129, 0.4)',
+            background: cfg.bgColor,
+            border: `2px solid ${cfg.ringColor}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 16px',
           }}
         >
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 28 28"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M5 14l6 6L23 8"
-              stroke="#10b981"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {cfg.icon}
         </div>
         <h1
           style={{
@@ -76,14 +123,14 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
             marginBottom: '8px',
           }}
         >
-          Return approved!
+          {cfg.heading}
         </h1>
         {result.resolutionDetail && (
           <p
             style={{
               color: 'var(--text-muted)',
               fontSize: '15px',
-              maxWidth: '420px',
+              maxWidth: '460px',
               margin: '0 auto',
               lineHeight: 1.6,
             }}
@@ -93,7 +140,8 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
         )}
       </div>
 
-      {/* ── Metric row ─────────────────────────────────────────────────────── */}
+      {/* ── Metric row — only shown for approved outcomes ──────────────────── */}
+      {cfg.showResolutionTile && (
       <div
         style={{
           display: 'grid',
@@ -102,7 +150,7 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
           marginBottom: '24px',
         }}
       >
-        {/* Resolution type — always shown */}
+        {/* Resolution type */}
         <div
           className="card"
           style={{
@@ -196,6 +244,7 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
           </div>
         )}
       </div>
+      )} {/* end cfg.showResolutionTile */}
 
       {/* ── Next steps ─────────────────────────────────────────────────────── */}
       {result.nextSteps && result.nextSteps.length > 0 && (
@@ -208,7 +257,7 @@ export default function ResolutionCard({ result, onStartAnother }: Props) {
               marginBottom: '16px',
             }}
           >
-            Next steps
+            {cfg.stepsLabel}
           </h3>
           <ol
             style={{
